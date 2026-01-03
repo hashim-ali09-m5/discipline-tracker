@@ -2147,6 +2147,10 @@
                     const day = this.tracker[iso];
                     return day && day.result !== null && !day.isHoliday;
                 }).length;
+                const holidayCount = Object.keys(this.tracker).filter(iso => {
+                    const day = this.tracker[iso];
+                    return day && day.isHoliday;
+                }).length;
                 const winRate = totalDays > 0 ? Math.round((stats.wins / totalDays) * 100) : 0;
                 const avgPerWeek = totalDays > 0 ? Math.round(stats.wins / (totalDays / 7)) : 0;
                 
@@ -2169,6 +2173,10 @@
                     <div class="analytics-item" style="display: flex !important; flex-direction: column; visibility: visible !important;">
                         <div class="analytics-item-value" style="color: #6366f1 !important; font-size: 32px !important; font-weight: bold !important;">${avgPerWeek}</div>
                         <div class="analytics-item-label">Avg/Week</div>
+                    </div>
+                    <div class="analytics-item" style="display: flex !important; flex-direction: column; visibility: visible !important;">
+                        <div class="analytics-item-value" style="color: #fb923c !important; font-size: 32px !important; font-weight: bold !important;">${holidayCount}</div>
+                        <div class="analytics-item-label">Holidays</div>
                     </div>
                 `;
             }
@@ -2240,16 +2248,14 @@
                 const monthlyStats = {};
                 
                 for (let iso in this.tracker) {
-                    // Skip holidays completely
-                    if (this.tracker[iso].isHoliday) {
-                        continue;
-                    }
-                    
                     const month = iso.substring(0, 7);
                     if (!monthlyStats[month]) {
-                        monthlyStats[month] = { wins: 0, losses: 0 };
+                        monthlyStats[month] = { wins: 0, losses: 0, holidays: 0 };
                     }
-                    if (this.tracker[iso].result === 'W') {
+                    
+                    if (this.tracker[iso].isHoliday) {
+                        monthlyStats[month].holidays++;
+                    } else if (this.tracker[iso].result === 'W') {
                         monthlyStats[month].wins++;
                     } else if (this.tracker[iso].result === 'L') {
                         monthlyStats[month].losses++;
@@ -2273,6 +2279,7 @@
                             <span class="month-win">${stats.wins}W</span>
                             <span style="color: var(--text-tertiary);">/</span>
                             <span class="month-loss">${stats.losses}L</span>
+                            ${stats.holidays > 0 ? `<span style="color: var(--text-tertiary);">/</span><span style="color: var(--accent-holiday);">${stats.holidays}H</span>` : ''}
                         </div>
                     `;
                     monthlyEl.appendChild(item);
